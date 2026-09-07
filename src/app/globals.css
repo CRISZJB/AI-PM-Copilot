@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f4f6f8;
+  --foreground: #12161c;
+  --ink: #12161c;
+  --ink-soft: #1e2630;
+  --ink-muted: #5b6573;
+  --ink-faint: #8b95a5;
+  --surface: #f4f6f8;
+  --surface-muted: #eef1f5;
+  --border: #dde3ea;
+  --accent: #0f766e;
+  --priority-p0: #b42318;
+  --priority-p1: #b54708;
+  --priority-p2: #475467;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-priority-p0: var(--priority-p0);
+  --color-priority-p1: var(--priority-p1);
+  --color-priority-p2: var(--priority-p2);
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display), var(--font-sans), ui-sans-serif, system-ui,
+    sans-serif;
+}
