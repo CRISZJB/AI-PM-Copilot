@@ -12,6 +12,14 @@ AI 在每个阶段提供结构化分析和建议，PM 保留关键决策、修�
 
 ---
 
+## Live Demo
+
+**在线体验：** [Open AI PM Copilot](https://ai-pm-copilot-9akz.onrender.com)
+
+> 当前 Portfolio Demo 部署于 Render。首次访问如果服务处于休眠状态，可能需要稍等片刻后再进入。
+
+---
+
 ## Product Workflow
 
 ```text
@@ -424,4 +432,5 @@ npx tsx scripts/test-prd-v2.ts
 - PM Supplement: complete
 - Markdown Export: complete
 - Portfolio Demo: complete
+- Live Demo: deployed on Render
 - Real PM user validation: pending
