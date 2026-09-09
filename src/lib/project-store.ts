@@ -5,6 +5,7 @@ import type {
   ProductAnalysis,
   ProjectInput,
   ProjectWorkspace,
+  Requirement,
 } from "@/ai/types";
 import {
   WORKSPACE_SCHEMA_VERSION,
@@ -111,7 +112,7 @@ export function createWorkspaceFromInput(input: ProjectInput): ProjectWorkspace 
 /**
  * Live Product Analysis path.
  * Draft analysis; MVP starts empty (none) — PM must Confirm Analysis then Generate MVP.
- * Keeps mock Requirements as placeholders until Requirements LLM is wired.
+ * Requirements start empty — PM must Confirm MVP then explicitly Generate Requirements.
  */
 export function createWorkspaceWithAnalysis(
   input: ProjectInput,
@@ -126,11 +127,11 @@ export function createWorkspaceWithAnalysis(
     mvpScope: emptyMvpScope(),
     mvpScopeStatus: "none",
     mvpScopeSource: "none",
-    // Keep mock requirements only as non-MVP placeholder; UI still mock for that stage.
+    requirements: [],
     prdSync: {
       status: "Draft",
       syncStatus: "up-to-date",
-      lastSyncedLabel: "Last synced with current product decisions",
+      lastSyncedLabel: "已与当前产品决策同步",
     },
   };
   saveWorkspace(workspace);
@@ -147,7 +148,7 @@ export function saveAnalysisEdits(analysis: ProductAnalysis): ProjectWorkspace {
     prdSync: {
       ...current.prdSync,
       syncStatus: "outdated",
-      lastSyncedLabel: "Analysis edited — confirm again before downstream use",
+      lastSyncedLabel: "分析已编辑——下游使用前请再次确认",
     },
   };
   saveWorkspace(workspace);
@@ -163,7 +164,7 @@ export function confirmAnalysis(): ProjectWorkspace {
     prdSync: {
       ...current.prdSync,
       syncStatus: "up-to-date",
-      lastSyncedLabel: "Analysis confirmed",
+      lastSyncedLabel: "分析已确认",
     },
   };
   saveWorkspace(workspace);
@@ -185,7 +186,7 @@ export function replaceAnalysisDraft(
     prdSync: {
       ...current.prdSync,
       syncStatus: "outdated",
-      lastSyncedLabel: "Analysis regenerated — review and confirm",
+      lastSyncedLabel: "分析已重新生成——请审阅并确认",
     },
   };
   saveWorkspace(workspace);
@@ -196,9 +197,7 @@ export function replaceAnalysisDraft(
 export function saveLiveMvpScope(mvpScope: MvpScope): ProjectWorkspace {
   const current = loadWorkspace();
   if (current.analysisStatus !== "confirmed") {
-    throw new Error(
-      "Confirmed Product Analysis is required before MVP prioritization.",
-    );
+    throw new Error("进行 MVP 优先级排序前需已确认产品分析。");
   }
   const workspace: ProjectWorkspace = {
     ...current,
@@ -208,7 +207,7 @@ export function saveLiveMvpScope(mvpScope: MvpScope): ProjectWorkspace {
     prdSync: {
       ...current.prdSync,
       syncStatus: "outdated",
-      lastSyncedLabel: "MVP scope generated — review and confirm",
+      lastSyncedLabel: "MVP 范围已生成——请审阅并确认",
     },
   };
   saveWorkspace(workspace);
@@ -228,7 +227,7 @@ export function saveMvpScopeEdits(mvpScope: MvpScope): ProjectWorkspace {
     prdSync: {
       ...current.prdSync,
       syncStatus: "outdated",
-      lastSyncedLabel: "MVP scope edited — confirm again before requirements",
+      lastSyncedLabel: "MVP 范围已编辑——生成需求前请再次确认",
     },
   };
   saveWorkspace(workspace);
@@ -239,7 +238,7 @@ export function saveMvpScopeEdits(mvpScope: MvpScope): ProjectWorkspace {
 export function confirmMvpScope(): ProjectWorkspace {
   const current = loadWorkspace();
   if (current.mvpScopeStatus === "none" || current.mvpScopeSource === "none") {
-    throw new Error("Generate MVP Scope before confirming.");
+    throw new Error("确认前请先生成 MVP 范围。");
   }
   const workspace: ProjectWorkspace = {
     ...current,
@@ -247,7 +246,37 @@ export function confirmMvpScope(): ProjectWorkspace {
     prdSync: {
       ...current.prdSync,
       syncStatus: "up-to-date",
-      lastSyncedLabel: "MVP scope confirmed",
+      lastSyncedLabel: "MVP 范围已确认",
+    },
+  };
+  saveWorkspace(workspace);
+  return workspace;
+}
+
+/**
+ * Save live Requirements generation result.
+ * Requires confirmed Analysis + confirmed MVP. Does not add a requirements HITL machine.
+ */
+export function saveLiveRequirements(
+  requirements: Requirement[],
+): ProjectWorkspace {
+  const current = loadWorkspace();
+  if (current.analysisStatus !== "confirmed") {
+    throw new Error("生成需求前需已确认产品分析。");
+  }
+  if (
+    current.mvpScopeStatus !== "confirmed" ||
+    current.mvpScopeSource === "none"
+  ) {
+    throw new Error("生成需求前需已确认 MVP 范围。");
+  }
+  const workspace: ProjectWorkspace = {
+    ...current,
+    requirements,
+    prdSync: {
+      ...current.prdSync,
+      syncStatus: "outdated",
+      lastSyncedLabel: "需求已生成——请在工作区 / PRD 中审阅",
     },
   };
   saveWorkspace(workspace);
@@ -268,4 +297,22 @@ export function applyFeaturePriority(
     category,
     reprioritizedByUser: true,
   };
+}
+
+/**
+ * PM marks the assembled PRD as reviewed against current upstream decisions.
+ * Does not change analysis / mvpScope / requirements payloads.
+ */
+export function markPrdSynced(): ProjectWorkspace {
+  const current = loadWorkspace();
+  const workspace: ProjectWorkspace = {
+    ...current,
+    prdSync: {
+      ...current.prdSync,
+      syncStatus: "up-to-date",
+      lastSyncedLabel: "PRD 已审阅同步",
+    },
+  };
+  saveWorkspace(workspace);
+  return workspace;
 }

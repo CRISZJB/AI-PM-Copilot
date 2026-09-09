@@ -284,7 +284,7 @@ Do **not** iterate to Prompt v4 without an explicit product decision.
 
 ### Downstream
 
-Only Confirmed MVP Scope may feed future Requirements Generation. Requirements LLM still not wired.
+Only Confirmed MVP Scope may feed Requirements Generation.
 
 ### Version history (continued)
 
@@ -292,3 +292,88 @@ Only Confirmed MVP Scope may feed future Requirements Generation. Requirements L
 |---------|------|-------|
 | v3 | 2026-09-06 | Eval-driven under-scoping fix: Minimum User Value Loop; WoZ boundaries; two-stage Necessity Test |
 | v3 | 2026-09-07 | 3-case regression PASS — **FROZEN** |
+
+---
+
+## Requirements Generation Prompt
+
+### Prompt source
+
+Current live prompt: `src/lib/ai/prompts/requirements.ts` (**v2 — FROZEN**)
+
+Eval history (keep):
+
+- `docs/requirements_eval_v1.md` (Prompt v1 — 2 PASS / 1 PASS WITH WARNINGS — **not frozen**)
+- `docs/requirements_eval_v2.md` (Prompt v2 — **3 / 3 PASS → FROZEN**)
+
+### Requirements Prompt v1 — baseline (historical)
+
+Wired live DeepSeek Requirements after confirmed Analysis + confirmed MVP.
+Strengths: Must Have → Requirement 1:1; User Story / AC / edge cases usable; P1/P2 mostly locked out.
+
+Eval: `docs/requirements_eval_v1.md`
+
+Issues that blocked freeze (v1 → v2 reasons):
+
+1. Invented numeric thresholds (e.g. “at least 7 unique dates”) not present in upstream
+2. Implementation-detail leakage (algorithms / mechanisms beyond confirmed capability)
+3. Need stronger confirmed-scope lock / integration-boundary clarity
+
+### Requirements Prompt v2 — anti invented thresholds / anti implementation leakage (**current / FROZEN**)
+
+**Status: FROZEN**
+
+#### Why v2 (v1 → v2)
+
+Iterate from v1 eval findings without changing Schema / API / HITL.
+
+#### v2 core additions
+
+1. **Ban invented numeric thresholds** — no numbers, %, SLAs, retries, file limits, confidence cutoffs, etc. unless already in confirmed upstream context
+2. **Unknown threshold handling** — product-defined rule / “Threshold needs product validation” / open decision in Edge Case — never invent a “reasonable” number
+3. **Testable ≠ numeric** — Acceptance Criteria stay observable without fabricating thresholds
+4. **Reduce implementation-detail leakage** — capability behavior over models/algorithms/infra
+5. **Integration boundary** — simulated / prototype stand-ins must not imply production telecom / POS / sync as Must Have
+6. **Stronger Confirmed MVP Scope Lock** — no Feature smuggling via Edge Cases
+7. **Keep Must Have → Requirement 1:1** (default) and Human-in-the-loop discipline from v1
+
+#### Preserved from v1
+
+- Must Have → Requirement 1:1
+- User Story structure
+- requiredInputs / optionalInputs / userActions
+- systemBehavior
+- Given / When / Then Acceptance Criteria
+- Missing Information
+- Edge Cases
+- Explicit Constraint Alignment
+- P1 / P2 Scope Lock
+- Existing `RequirementsOutputSchema` unchanged
+
+#### Eval (Prompt v2 regression)
+
+| Case | Result |
+|------|--------|
+| AI Study Planner | **PASS** |
+| AI Scam Call Assistant | **PASS** |
+| AI Inventory Planner | **PASS** |
+| Overall | **3 / 3 PASS** |
+
+Source: `docs/requirements_eval_v2.md`
+
+#### Core freeze reasons
+
+1. Prevent invented thresholds  
+2. Reduce implementation detail leakage  
+3. Preserve Confirmed MVP Scope Lock  
+4. Maintain Must Have → Requirement 1:1  
+
+#### Version history
+
+| Version | Date | Notes |
+|---------|------|-------|
+| v1 | 2026-09-07 | First live Requirements LLM; eval 2 PASS / 1 WARN — not frozen |
+| v2 | 2026-09-07 | Prevent invented thresholds; reduce implementation leakage; strengthen scope lock |
+| v2 | 2026-09-07 | Regression eval **3 / 3 PASS** — **FROZEN** |
+
+Do **not** iterate to Requirements Prompt v3 without an explicit product decision.

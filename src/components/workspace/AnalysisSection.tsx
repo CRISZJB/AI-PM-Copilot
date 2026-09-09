@@ -113,7 +113,7 @@ function ListEditor({
       <span className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
         {label}
       </span>
-      <p className="text-[11px] text-ink-faint">One item per line</p>
+      <p className="text-[11px] text-ink-faint">每行一项</p>
       <textarea
         value={values.join("\n")}
         onChange={(event) => onChange(event.target.value.split("\n"))}
@@ -125,7 +125,7 @@ function ListEditor({
 }
 
 const REGENERATE_WARNING =
-  "Regeneration would replace unconfirmed AI content. Manually edited items (PM Edited) are kept. Continue?";
+  "重新生成会替换未确认的 AI 内容。PM 已编辑项会保留。是否继续？";
 
 export function AnalysisSection({
   workspace,
@@ -142,7 +142,7 @@ export function AnalysisSection({
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const agePrefix =
-    targetUser.ageRange.source === "not_provided" ? "Age: " : "Age ";
+    targetUser.ageRange.source === "not_provided" ? "年龄：" : "年龄 ";
 
   function beginEdit(card: CardId) {
     setActionMessage(null);
@@ -161,8 +161,8 @@ export function AnalysisSection({
     setDraft(null);
     setActionMessage(
       isConfirmed
-        ? "Edits saved. Analysis returned to Draft — confirm again before downstream use."
-        : "Edits saved.",
+        ? "已保存。分析已回到草稿——下游使用前请再次确认。"
+        : "已保存。",
     );
   }
 
@@ -228,7 +228,7 @@ export function AnalysisSection({
         error?: string;
       };
       if (!response.ok || !payload.analysis) {
-        throw new Error(payload.error || "Regeneration failed.");
+        throw new Error(payload.error || "重新生成失败。");
       }
 
       const merged = mergeAnalysisPreservingEdits(analysis, payload.analysis);
@@ -236,11 +236,11 @@ export function AnalysisSection({
       setEditingCard(null);
       setDraft(null);
       setActionMessage(
-        `Regenerated (${card}). PM-edited items were preserved. Review and confirm when ready.`,
+        `已重新生成（${card}）。PM 已编辑项已保留。就绪后请审阅并确认。`,
       );
     } catch (error) {
       setActionMessage(
-        error instanceof Error ? error.message : "Regeneration failed.",
+        error instanceof Error ? error.message : "重新生成失败。",
       );
     } finally {
       setRegenerating(false);
@@ -249,7 +249,7 @@ export function AnalysisSection({
 
   function handleConfirm() {
     if (editingCard) {
-      setActionMessage("Save or cancel your edit before confirming.");
+      setActionMessage("确认前请先保存或取消编辑。");
       return;
     }
     confirmAnalysis();
@@ -260,29 +260,28 @@ export function AnalysisSection({
     <div className="space-y-8">
       <header>
         <p className="text-xs font-medium uppercase tracking-[0.08em] text-accent">
-          Product Analysis
+          产品分析
         </p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
-          Understand the problem space
+          理解问题空间
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">
-          Live AI analysis from your project inputs. Each statement shows
-          whether it came from your input, AI inference, or was not provided.
+          基于项目输入的实时 AI 分析。每条说明其来自输入、AI 推断或未提供。
         </p>
-        <p className="mt-1 text-xs text-ink-faint">AI proposes. PM decides.</p>
+        <p className="mt-1 text-xs text-ink-faint">AI 提议，PM 决策。</p>
       </header>
 
       <div className="rounded-lg border border-border bg-white px-5 py-4">
         <p className="text-xs font-medium uppercase tracking-[0.08em] text-ink-faint">
-          Analysis Status
+          分析状态
         </p>
         <p className="mt-1.5 text-base font-semibold text-ink">
-          {isConfirmed ? "Confirmed" : "Draft"}
+          {isConfirmed ? "已确认" : "草稿"}
         </p>
         <p className="mt-1 text-sm text-ink-muted">
           {isConfirmed
-            ? "Confirmed analysis will be used as context for MVP prioritization."
-            : "Review AI-generated assumptions and insights before continuing."}
+            ? "已确认分析将作为 MVP 优先级排序的上下文。"
+            : "继续前请审阅 AI 生成的假设与洞察。"}
         </p>
       </div>
 
@@ -292,8 +291,8 @@ export function AnalysisSection({
 
       <div className="grid gap-4 lg:grid-cols-2">
         <AnalysisCard
-          title="Target User Hypothesis"
-          eyebrow="User"
+          title="目标用户假设"
+          eyebrow="用户"
           isEditing={editingCard === "target-user"}
           onEdit={() => beginEdit("target-user")}
           onCancelEdit={cancelEdit}
@@ -304,7 +303,7 @@ export function AnalysisSection({
           {editingCard === "target-user" && draft ? (
             <div className="space-y-4">
               <FieldEditor
-                label="Segment"
+                label="细分人群"
                 value={draft.targetUser.segment.value}
                 rows={2}
                 onChange={(value) =>
@@ -318,7 +317,7 @@ export function AnalysisSection({
                 }
               />
               <FieldEditor
-                label="Age range"
+                label="年龄范围"
                 value={draft.targetUser.ageRange.value}
                 rows={1}
                 onChange={(value) =>
@@ -332,7 +331,7 @@ export function AnalysisSection({
                 }
               />
               <ListEditor
-                label="Goals"
+                label="目标"
                 values={draft.targetUser.goals.map((item) => item.value)}
                 onChange={(values) =>
                   setDraft({
@@ -351,7 +350,7 @@ export function AnalysisSection({
                 }
               />
               <ListEditor
-                label="Behaviors"
+                label="行为"
                 values={draft.targetUser.behaviors.map((item) => item.value)}
                 onChange={(values) =>
                   setDraft({
@@ -385,7 +384,7 @@ export function AnalysisSection({
               </ul>
               <div className="mt-5 border-t border-border pt-5">
                 <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
-                  Goals
+                  目标
                 </p>
                 <div className="mt-2">
                   <EvidenceItemList items={targetUser.goals} />
@@ -393,7 +392,7 @@ export function AnalysisSection({
               </div>
               <div className="mt-5 border-t border-border pt-5">
                 <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">
-                  Behaviors
+                  行为
                 </p>
                 <div className="mt-2">
                   <EvidenceItemList items={targetUser.behaviors} />
@@ -404,8 +403,8 @@ export function AnalysisSection({
         </AnalysisCard>
 
         <AnalysisCard
-          title="Core Problem"
-          eyebrow="Problem"
+          title="核心问题"
+          eyebrow="问题"
           isEditing={editingCard === "core-problem"}
           onEdit={() => beginEdit("core-problem")}
           onCancelEdit={cancelEdit}
@@ -417,7 +416,7 @@ export function AnalysisSection({
         >
           {editingCard === "core-problem" && draft ? (
             <FieldEditor
-              label="Core problem"
+              label="核心问题"
               value={draft.coreProblem.value}
               onChange={(value) =>
                 setDraft({
@@ -432,8 +431,8 @@ export function AnalysisSection({
         </AnalysisCard>
 
         <AnalysisCard
-          title="Pain Points"
-          eyebrow="Friction"
+          title="痛点"
+          eyebrow="摩擦"
           isEditing={editingCard === "pain-points"}
           onEdit={() => beginEdit("pain-points")}
           onCancelEdit={cancelEdit}
@@ -449,7 +448,7 @@ export function AnalysisSection({
         >
           {editingCard === "pain-points" && draft ? (
             <ListEditor
-              label="Pain points"
+              label="痛点"
               values={draft.painPoints.map((item) => item.value)}
               onChange={(values) =>
                 setDraft({
@@ -470,8 +469,8 @@ export function AnalysisSection({
         </AnalysisCard>
 
         <AnalysisCard
-          title="Core Scenarios"
-          eyebrow="Usage"
+          title="核心场景"
+          eyebrow="使用"
           isEditing={editingCard === "core-scenarios"}
           onEdit={() => beginEdit("core-scenarios")}
           onCancelEdit={cancelEdit}
@@ -487,7 +486,7 @@ export function AnalysisSection({
         >
           {editingCard === "core-scenarios" && draft ? (
             <ListEditor
-              label="Core scenarios"
+              label="核心场景"
               values={draft.coreScenarios.map((item) => item.value)}
               onChange={(values) =>
                 setDraft({
@@ -508,8 +507,8 @@ export function AnalysisSection({
         </AnalysisCard>
 
         <AnalysisCard
-          title="Product Positioning"
-          eyebrow="Positioning"
+          title="产品定位"
+          eyebrow="定位"
           className="lg:col-span-2"
           isEditing={editingCard === "positioning"}
           onEdit={() => beginEdit("positioning")}
@@ -523,7 +522,7 @@ export function AnalysisSection({
         >
           {editingCard === "positioning" && draft ? (
             <FieldEditor
-              label="Product positioning"
+              label="产品定位"
               value={draft.productPositioning.value}
               onChange={(value) =>
                 setDraft({
@@ -541,8 +540,8 @@ export function AnalysisSection({
         </AnalysisCard>
 
         <AnalysisCard
-          title="Assumptions to Validate"
-          eyebrow="Assumptions"
+          title="待验证假设"
+          eyebrow="假设"
           isEditing={editingCard === "assumptions"}
           onEdit={() => beginEdit("assumptions")}
           onCancelEdit={cancelEdit}
@@ -558,7 +557,7 @@ export function AnalysisSection({
         >
           {editingCard === "assumptions" && draft ? (
             <ListEditor
-              label="Assumptions"
+              label="假设"
               values={draft.assumptions.map((item) => item.value)}
               onChange={(values) =>
                 setDraft({
@@ -579,8 +578,8 @@ export function AnalysisSection({
         </AnalysisCard>
 
         <AnalysisCard
-          title="Open Questions"
-          eyebrow="Research"
+          title="待解问题"
+          eyebrow="调研"
           isEditing={editingCard === "open-questions"}
           onEdit={() => beginEdit("open-questions")}
           onCancelEdit={cancelEdit}
@@ -596,7 +595,7 @@ export function AnalysisSection({
         >
           {editingCard === "open-questions" && draft ? (
             <ListEditor
-              label="Open questions"
+              label="待解问题"
               values={draft.openQuestions.map((item) => item.value)}
               onChange={(values) =>
                 setDraft({
@@ -620,25 +619,21 @@ export function AnalysisSection({
       <div className="border-t border-border pt-8">
         {isConfirmed ? (
           <div className="rounded-lg border border-border bg-surface-muted/40 px-5 py-4">
-            <p className="text-base font-semibold text-ink">
-              Analysis confirmed
-            </p>
+            <p className="text-base font-semibold text-ink">分析已确认</p>
             <p className="mt-1 text-sm text-ink-muted">
-              Confirmed analysis will be used as context for MVP prioritization.
+              已确认分析将作为 MVP 优先级排序的上下文。
             </p>
             <p className="mt-3 text-xs text-ink-faint">
-              Editing any field returns status to Draft and requires confirm
-              again.
+              编辑任意字段会将状态打回草稿，需再次确认。
             </p>
           </div>
         ) : (
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="max-w-xl text-sm text-ink-muted">
-              Confirm when this analysis is ready to become downstream context.
-              MVP Scope remains mock until a later stage.
+              当分析可作为下游上下文时请确认。确认后请显式生成 MVP 范围。
             </p>
             <Button type="button" onClick={handleConfirm}>
-              Confirm Analysis
+              确认分析
             </Button>
           </div>
         )}

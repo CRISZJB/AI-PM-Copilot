@@ -15,49 +15,47 @@ const fields: {
 }[] = [
   {
     key: "projectName",
-    label: "Project Name",
-    placeholder: "e.g. AI Study Planner",
+    label: "项目名称",
+    placeholder: "例如：AI 学习规划助手",
   },
   {
     key: "productIdea",
-    label: "Product Idea",
-    placeholder:
-      "e.g. An AI-powered study planning assistant for university students.",
+    label: "产品想法",
+    placeholder: "例如：面向大学生的 AI 学习规划助手。",
     rows: 3,
   },
   {
     key: "targetUser",
-    label: "Target User",
-    placeholder: "e.g. University students aged 18–24.",
+    label: "目标用户",
+    placeholder: "例如：18–24 岁的大学生。",
     rows: 2,
   },
   {
     key: "problem",
-    label: "Problem",
+    label: "问题",
     placeholder:
-      "e.g. Students struggle to organize study tasks, maintain consistent plans and adjust schedules when priorities change.",
+      "例如：学生难以组织学习任务、保持计划一致性，并在优先级变化时调整安排。",
     rows: 3,
   },
   {
     key: "businessGoal",
-    label: "Business Goal",
-    placeholder:
-      "e.g. Help students improve study planning efficiency and completion consistency.",
+    label: "业务目标",
+    placeholder: "例如：帮助学生提升学习规划效率与完成一致性。",
     rows: 2,
   },
   {
     key: "constraints",
-    label: "Constraints",
+    label: "约束条件",
     placeholder:
-      "e.g. MVP should remain simple and focus on planning rather than becoming a full learning platform.",
+      "例如：MVP 应保持简单，聚焦规划而非完整学习平台。",
     rows: 2,
   },
 ];
 
 const loadingMessages = [
-  "Analyzing product context...",
-  "Identifying assumptions...",
-  "Structuring product insights...",
+  "正在分析产品上下文…",
+  "正在识别假设…",
+  "正在整理产品洞察…",
 ];
 
 export function ProjectForm() {
@@ -101,7 +99,7 @@ export function ProjectForm() {
 
       if (!response.ok || !payload.analysis) {
         throw new Error(
-          payload.error || "We couldn't analyze this product idea.",
+          payload.error || "无法分析该产品想法。",
         );
       }
 
@@ -111,7 +109,7 @@ export function ProjectForm() {
       const message =
         err instanceof Error
           ? err.message
-          : "We couldn't analyze this product idea.";
+          : "无法分析该产品想法。";
       setError(message);
       setIsSubmitting(false);
     }
@@ -160,16 +158,14 @@ export function ProjectForm() {
 
       {error ? (
         <div className="rounded-md border border-border bg-surface-muted/50 px-4 py-3">
-          <p className="text-sm text-ink">
-            We couldn&apos;t analyze this product idea.
-          </p>
+          <p className="text-sm text-ink">无法分析该产品想法。</p>
           <p className="mt-1 text-xs text-ink-faint">{error}</p>
           <button
             type="button"
             onClick={() => void analyzeProductIdea()}
             className="mt-3 text-xs font-medium text-ink underline-offset-2 hover:underline"
           >
-            Try Again
+            重试
           </button>
         </div>
       ) : null}
@@ -178,10 +174,10 @@ export function ProjectForm() {
         <p className="max-w-md text-sm text-ink-muted">
           {isSubmitting
             ? loadingMessage
-            : "Structured Product Analysis is generated from your inputs. Review before moving to MVP scope."}
+            : "将根据你的输入生成结构化产品分析。进入 MVP 范围前请先审阅。"}
         </p>
         <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Analyzing…" : "Analyze Product Idea"}
+          {isSubmitting ? "分析中…" : "分析产品想法"}
         </Button>
       </div>
     </form>

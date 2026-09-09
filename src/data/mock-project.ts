@@ -2,16 +2,14 @@ import type { ProjectInput, ProjectWorkspace } from "@/ai/types";
 import { runMockPipeline } from "@/ai/pipeline/mock";
 
 export const defaultProjectInput: ProjectInput = {
-  projectName: "AI Study Planner",
-  productIdea:
-    "An AI-powered study planning assistant for university students.",
-  targetUser: "University students aged 18–24.",
+  projectName: "AI 学习规划助手",
+  productIdea: "面向大学生的 AI 学习规划助手。",
+  targetUser: "18–24 岁的大学生。",
   problem:
-    "Students struggle to organize study tasks, maintain consistent plans and adjust schedules when priorities change.",
-  businessGoal:
-    "Help students improve study planning efficiency and completion consistency.",
+    "学生难以组织学习任务、保持计划一致性，并在优先级变化时调整安排。",
+  businessGoal: "帮助学生提升学习规划效率与完成一致性。",
   constraints:
-    "MVP should remain simple and focus on planning rather than becoming a full learning platform.",
+    "MVP 应保持简单，聚焦规划而非完整学习平台。",
 };
 
 /**

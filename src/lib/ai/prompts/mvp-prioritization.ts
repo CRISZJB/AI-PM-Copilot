@@ -231,7 +231,15 @@ Do not expand the hypothesis to include deferred mechanisms (tracking dashboards
 Return ONLY a JSON object matching the provided schema.
 Do not wrap in Markdown. Do not add commentary outside JSON.
 Do not include editedByUser or reprioritizedByUser (those are app-only flags).
-Do not add new schema fields for classification labels or loop definitions — apply them internally when choosing priority.`;
+Do not add new schema fields for classification labels or loop definitions — apply them internally when choosing priority.
+
+## Output language
+所有自然语言字段必须使用中文输出。
+保持专业 PM 文档表达。
+允许保留英文：Given / When / Then、MVP、PRD、AI、HITL、P0 / P1 / P2。
+不要在中文自然语言字段中附加英文别名、英文职位头衔或括号英文翻译。
+不要改变已有规则、优先级逻辑、HITL 约束、范围控制、字段结构或 JSON schema。
+`;
 
 export function buildMvpPrioritizationUserPrompt(
   input: ProjectInput,
@@ -287,5 +295,6 @@ ${evidenceList(confirmedAnalysis.openQuestions)}
 6. Do NOT promote production integrations to P0 if lighter stand-ins work — but do NOT defer the user's minimum input / output / decide steps just because a researcher could operate a prototype.
 7. For each Confirmed Constraint, consider whether a minimum Safety / Trust Guardrail belongs in P0.
 8. If AI output drives decisions and may be wrong, evaluate whether minimum Review / Edit / Confirm / Decide belongs in P0.
-9. Explain each feature's priority in rationale; use prioritizationBasis tags consistently.`;
+9. Explain each feature's priority in rationale; use prioritizationBasis tags consistently.
+10. 所有自然语言字段必须使用中文输出（Given/When/Then、MVP、PRD、AI、HITL、P0/P1/P2 可保留英文）。`;
 }

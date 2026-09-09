@@ -14,11 +14,11 @@ const styles: Record<SourceBadgeVariant, string> = {
 };
 
 const labels: Record<SourceBadgeVariant, string> = {
-  "from-input": "From Input",
-  "ai-inference": "AI Inference",
-  "not-provided": "Not Provided",
-  "needs-validation": "Needs Validation",
-  "pm-edited": "PM Edited",
+  "from-input": "来自输入",
+  "ai-inference": "AI 推断",
+  "not-provided": "未提供",
+  "needs-validation": "待验证",
+  "pm-edited": "PM 已编辑",
 };
 
 export function SourceBadge({ variant }: { variant: SourceBadgeVariant }) {

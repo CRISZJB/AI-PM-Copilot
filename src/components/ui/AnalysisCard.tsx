@@ -47,7 +47,7 @@ export function AnalysisCard({
                   onClick={onSaveEdit}
                   className="text-xs font-medium text-ink transition-colors hover:text-ink-soft"
                 >
-                  Save
+                  保存
                 </button>
                 <span className="text-ink-faint/40">·</span>
                 <button
@@ -55,7 +55,7 @@ export function AnalysisCard({
                   onClick={onCancelEdit}
                   className="text-xs text-ink-faint transition-colors hover:text-ink"
                 >
-                  Cancel
+                  取消
                 </button>
               </>
             ) : (
@@ -65,7 +65,7 @@ export function AnalysisCard({
                   onClick={onEdit}
                   className="text-xs text-ink-faint transition-colors hover:text-ink"
                 >
-                  Edit
+                  编辑
                 </button>
                 <span className="text-ink-faint/40">·</span>
                 <button
@@ -74,7 +74,7 @@ export function AnalysisCard({
                   disabled={regenerateBusy}
                   className="text-xs text-ink-faint transition-colors hover:text-ink disabled:opacity-50"
                 >
-                  {regenerateBusy ? "…" : "Regenerate"}
+                  {regenerateBusy ? "…" : "重新生成"}
                 </button>
               </>
             )}

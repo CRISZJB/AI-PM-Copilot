@@ -18,90 +18,50 @@ export function mockAnalyzeProduct(input: ProjectInput): ProductAnalysis {
       ageRange: ageMentioned
         ? fromInput(
             input.targetUser.match(/\d+\s*[–\-]\s*\d+/)?.[0]?.replace(/\s/g, "") ||
-              "As stated in input",
+              "按输入所述",
           )
-        : fromNotProvided("Not provided"),
+        : fromNotProvided("未提供"),
       goals: [
-        fromInference(
-          "May want to turn stated commitments into a clear, structured plan",
-        ),
-        fromInference(
-          "May want to stay consistent without rebuilding plans from scratch",
-        ),
-        fromInference(
-          "May want to adjust when priorities change — a hypothesis to validate",
-        ),
+        fromInference("可能希望把既定承诺转化为清晰、结构化的计划"),
+        fromInference("可能希望保持执行一致性，而不必每次从头重建计划"),
+        fromInference("优先级变化时可能希望能调整计划——有待验证的假设"),
       ],
       behaviors: [
-        fromInference(
-          "May collect tasks across multiple tools based on current input",
-        ),
-        fromInference(
-          "May overcommit early and under-deliver mid-cycle — needs validation",
-        ),
-        fromInference(
-          "May prefer short planning sessions over complex systems",
-        ),
+        fromInference("可能基于当前输入，在多个工具间收集任务"),
+        fromInference("可能前期承诺过多、中期交付不足——需验证"),
+        fromInference("可能更偏好短时规划，而非复杂系统"),
       ],
     },
     coreProblem: fromInference(
-      `Based on current input, users may struggle with: ${input.problem}`,
+      `基于当前输入，用户可能面临的问题：${input.problem}`,
       false,
     ),
     painPoints: [
-      fromInference(
-        "Relevant friction may include scattered inputs and changing priorities",
-      ),
-      fromInference(
-        "Plans may become outdated after unexpected changes — hypothesis to validate",
-      ),
-      fromInference(
-        "Users may struggle to prioritize when multiple tasks feel urgent",
-      ),
-      fromInference(
-        "Planning itself may feel time-consuming based on current input",
-      ),
+      fromInference("相关摩擦可能包括输入分散与优先级频繁变化"),
+      fromInference("计划可能在意外变化后迅速过时——有待验证的假设"),
+      fromInference("多项任务都显得紧急时，用户可能难以排优先级"),
+      fromInference("基于当前输入，规划本身可能让人感到耗时"),
     ],
     coreScenarios: [
-      fromInference(
-        "A user may create an initial plan from goals, deadlines, and available time",
-      ),
-      fromInference(
-        "A user may need to revisit the plan when priorities change",
-      ),
-      fromInference(
-        "A user may review a short focus list before starting work",
-      ),
-      fromInference(
-        "A user may compare planned versus completed work at period end",
-      ),
+      fromInference("用户可能根据目标、截止日期与可用时间创建初始计划"),
+      fromInference("优先级变化时，用户可能需要回看并调整计划"),
+      fromInference("开始工作前，用户可能先查看一份简短的焦点清单"),
+      fromInference("阶段结束时，用户可能对比计划与实际完成情况"),
     ],
     productPositioning: fromInference(
-      `Proposed positioning: ${input.projectName} helps the stated users address the stated problem within the given constraints — not a broader platform beyond those constraints.`,
+      `${input.projectName} 帮助所述用户在既定约束内解决所述问题——而非超出这些约束的更广平台。`,
       false,
     ),
     assumptions: [
-      fromInference(
-        "Users may be willing to provide the minimum inputs required for planning value.",
-      ),
-      fromInference(
-        "A structured plan may be more valuable than ad-hoc task lists for this audience.",
-      ),
-      fromInference(
-        "Users may accept AI suggestions if they remain editable and non-authoritative.",
-      ),
+      fromInference("用户可能愿意提供实现规划价值所需的最小输入。"),
+      fromInference("对目标受众而言，结构化计划可能比临时任务列表更有价值。"),
+      fromInference("若 AI 建议可编辑且非权威最终决定，用户可能愿意采纳。"),
     ],
     openQuestions: [
-      fromInference("What causes users to abandon plans today?", false),
-      fromInference("How frequently do priorities change in practice?", false),
-      fromInference(
-        "What types of AI suggestions would users trust enough to try?",
-        false,
-      ),
-      fromInference(
-        "Should AI only suggest changes, or ever apply them automatically?",
-        false,
-      ),
+      fromInference("用户今天放弃计划的原因是什么？", false),
+      fromInference("实际中优先级变化有多频繁？", false),
+      fromInference("用户愿意尝试哪些类型的 AI 建议？", false),
+      fromInference("AI 是否只应建议变更，还是可以在某些情况下自动应用？", false),
     ],
   };
 }

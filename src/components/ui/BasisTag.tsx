@@ -1,11 +1,11 @@
 import type { PrioritizationBasis } from "@/types/project";
 
 export const basisLabels: Record<PrioritizationBasis, string> = {
-  core_user_value: "Core user value",
-  validation_critical: "Validation critical",
-  human_in_the_loop: "Human-in-the-loop",
-  not_required_for_core_validation: "Not required for core validation",
-  complexity_needs_validation: "Complexity needs technical validation",
+  core_user_value: "核心用户价值",
+  validation_critical: "验证关键",
+  human_in_the_loop: "人工介入（HITL）",
+  not_required_for_core_validation: "非核心验证所需",
+  complexity_needs_validation: "复杂度需技术验证",
 };
 
 export function BasisTag({ basis }: { basis: PrioritizationBasis }) {

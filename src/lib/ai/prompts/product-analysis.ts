@@ -108,6 +108,13 @@ Use source = "ai_inference" and needsValidation = false (questions are not claim
 Return ONLY structured data matching the provided schema.
 Do not return Markdown.
 Do not add extra keys.
+
+## Output language
+所有自然语言字段必须使用中文输出。
+保持专业 PM 文档表达。
+允许保留英文：Given / When / Then、MVP、PRD、AI、HITL、P0 / P1 / P2。
+不要在中文自然语言字段中附加英文别名、英文职位头衔或括号英文翻译。
+不要改变已有规则、优先级逻辑、HITL 约束、范围控制、字段结构或 JSON schema。
 `;
 
 export function buildProductAnalysisUserPrompt(input: ProjectInput): string {
@@ -137,5 +144,6 @@ Remember (v2):
 - Item-level provenance for every list item
 - needsValidation does not allow unsupported "most users" claims
 - Prefer may/might/could/hypothesis language for inferences
-- Keep assumptions and open questions useful for a PM portfolio-quality analysis`;
+- Keep assumptions and open questions useful for a PM portfolio-quality analysis
+- 所有自然语言字段必须使用中文输出（Given/When/Then、MVP、PRD、AI、HITL、P0/P1/P2 可保留英文）`;
 }

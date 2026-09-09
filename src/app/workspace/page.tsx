@@ -9,7 +9,7 @@ export default function WorkspacePage() {
       <Suspense
         fallback={
           <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center text-sm text-ink-muted">
-            Loading workspace…
+            正在加载工作区…
           </div>
         }
       >

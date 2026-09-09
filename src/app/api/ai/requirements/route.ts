@@ -1,18 +1,24 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { ProductAnalysisSchema, ProjectInputSchema } from "@/ai/schemas";
+import {
+  MvpScopeSchema,
+  ProductAnalysisSchema,
+  ProjectInputSchema,
+} from "@/ai/schemas";
 import { AiConfigError } from "@/lib/ai/deepseek-client";
 import {
-  AiMvpError,
-  runMvpPrioritization,
-} from "@/lib/ai/run-mvp-prioritization";
+  AiRequirementsError,
+  runRequirementsGeneration,
+} from "@/lib/ai/run-requirements";
 
 export const runtime = "nodejs";
 
-const MvpScopeRequestSchema = z.object({
+const RequirementsRequestSchema = z.object({
   input: ProjectInputSchema,
   analysis: ProductAnalysisSchema,
   analysisStatus: z.literal("confirmed"),
+  mvpScope: MvpScopeSchema,
+  mvpScopeStatus: z.literal("confirmed"),
 });
 
 export async function POST(request: Request) {
@@ -30,26 +36,40 @@ export async function POST(request: Request) {
     );
   }
 
-  // Explicit gate before any DeepSeek call — status must be confirmed.
-  if (
-    !body ||
-    typeof body !== "object" ||
-    (body as { analysisStatus?: unknown }).analysisStatus !== "confirmed"
-  ) {
+  const record =
+    body && typeof body === "object"
+      ? (body as {
+          analysisStatus?: unknown;
+          mvpScopeStatus?: unknown;
+        })
+      : null;
+
+  // Explicit gates before any DeepSeek call.
+  if (!record || record.analysisStatus !== "confirmed") {
     return NextResponse.json(
       {
-        error: "进行 MVP 优先级排序前需已确认产品分析。",
+        error: "生成需求前需已确认产品分析。",
         code: "analysis_not_confirmed",
       },
       { status: 403 },
     );
   }
 
-  const parsed = MvpScopeRequestSchema.safeParse(body);
+  if (record.mvpScopeStatus !== "confirmed") {
+    return NextResponse.json(
+      {
+        error: "生成需求前需已确认 MVP 范围。",
+        code: "mvp_not_confirmed",
+      },
+      { status: 403 },
+    );
+  }
+
+  const parsed = RequirementsRequestSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       {
-        error: "进行 MVP 优先级排序前需已确认产品分析。",
+        error: "生成需求前需已确认产品分析与 MVP 范围。",
         code: "invalid_input",
         details: parsed.error.flatten(),
       },
@@ -58,11 +78,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const mvpScope = await runMvpPrioritization(
+    const requirements = await runRequirementsGeneration(
       parsed.data.input,
       parsed.data.analysis,
+      parsed.data.mvpScope,
     );
-    return NextResponse.json({ mvpScope });
+    return NextResponse.json({ requirements });
   } catch (error) {
     if (error instanceof AiConfigError) {
       return NextResponse.json(
@@ -77,26 +98,27 @@ export async function POST(request: Request) {
       );
     }
 
-    if (error instanceof AiMvpError) {
+    if (error instanceof AiRequirementsError) {
       const status =
         error.code === "parse_failed"
           ? 422
-          : error.code === "analysis_not_confirmed"
+          : error.code === "analysis_not_confirmed" ||
+              error.code === "mvp_not_confirmed"
             ? 403
             : 502;
       return NextResponse.json(
         {
-          error: "无法完成该 MVP 范围的优先级排序。",
+          error: "无法生成需求。",
           code: error.code,
         },
         { status },
       );
     }
 
-    console.error("[api/ai/mvp-scope] unexpected error", error);
+    console.error("[api/ai/requirements] unexpected error", error);
     return NextResponse.json(
       {
-        error: "无法完成该 MVP 范围的优先级排序。",
+        error: "无法生成需求。",
         code: "unknown",
       },
       { status: 500 },

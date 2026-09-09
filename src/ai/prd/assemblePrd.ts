@@ -1,6 +1,7 @@
 import type {
   EvidenceField,
   MvpFeature,
+  MvpScope,
   ProjectWorkspace,
   Requirement,
 } from "@/ai/types";
@@ -22,6 +23,8 @@ export interface AssembledPrd {
     productSummary: string;
     productGoal: string;
   };
+  /** From Project Input — scope boundary for the PRD. */
+  constraints: string;
   targetUser: {
     segment: string;
     ageRange: string;
@@ -33,6 +36,10 @@ export interface AssembledPrd {
     coreScenarios: string[];
   };
   productHypothesis: string;
+  /** From MVP Scope — prioritization rationale (verbatim projection). */
+  prioritizationLogic: string[];
+  /** From MVP Scope — explicit trade-offs (verbatim projection). */
+  tradeOffs: string[];
   mvpScope: {
     mustHave: MvpFeature[];
     outOfScope: MvpFeature[];
@@ -41,12 +48,69 @@ export interface AssembledPrd {
   aiBehaviorRules: string[];
   assumptions: EvidenceField[];
   openQuestions: EvidenceField[];
+  /** Derived display risks (often from tradeOffs); kept for existing UI. */
   risks: string[];
   sync: ProjectWorkspace["prdSync"];
 }
 
 function values(fields: EvidenceField[]): string[] {
   return fields.map((field) => field.value);
+}
+
+/** Domain-agnostic HITL rules, plus P0 features that require human control. */
+function buildAiBehaviorRules(mustHave: MvpFeature[]): string[] {
+  const rules: string[] = [
+    "不要静默编造缺失的必填输入；应明确询问或标注假设。",
+    "用户继续后使用的假设必须标注为待确认。",
+    "推断或系统估算的值必须向用户清晰标注。",
+    "约束冲突必须先暴露，再将输出视为最终结果。",
+    "用户编辑与已确认决策不得被静默覆盖。",
+    "重新生成未确认内容时，必须保留手动编辑区块。",
+    "完整重新生成需确认，并列出可能被替换的编辑项。",
+    "若重新生成失败，保留用户当前已编辑输出。",
+  ];
+
+  for (const feature of mustHave) {
+    if (feature.prioritizationBasis.includes("human_in_the_loop")) {
+      rules.push(
+        `对「${feature.name}」保持人工控制（HITL）：用户必须能在审阅、决策或修订后再将输出视为最终结果。`,
+      );
+    }
+  }
+
+  return rules;
+}
+
+/** Prefer MVP trade-offs; fall back to generic (non-industry) risks. */
+function buildRisks(mvpScope: MvpScope, mustHave: MvpFeature[]): string[] {
+  if (mvpScope.tradeOffs.length > 0) {
+    return mvpScope.tradeOffs.map((note) => `范围取舍：${note}`);
+  }
+
+  const risks = [
+    "上游未充分确认可能导致 PRD 与预期 MVP 不符。",
+    "若不确定性与假设未标注清楚，用户可能过度信任 AI 输出。",
+  ];
+
+  if (mustHave.length > 0) {
+    risks.push(
+      `必须有范围（${mustHave.map((f) => f.name).join("、")}）若核心用户行为被推迟或错误替换，仍可能验证失败。`,
+    );
+  }
+
+  return risks;
+}
+
+function buildProductHypothesis(
+  workspace: ProjectWorkspace,
+  mvpScope: MvpScope,
+): string {
+  if (mvpScope.coreHypothesis.trim()) {
+    return `假设：${mvpScope.coreHypothesis.trim()} 这仍是待验证假设——非已确认用户调研结论。`;
+  }
+
+  const { analysis } = workspace;
+  return `假设：针对 ${analysis.targetUser.segment.value} 解决「${analysis.coreProblem.value}」仍是待验证假设——非已确认用户调研结论。`;
 }
 
 /**
@@ -66,17 +130,6 @@ export function assemblePrd(workspace: ProjectWorkspace): AssembledPrd {
     (requirement) => requirement.priority === "P0",
   );
 
-  const curatedRules = [
-    "AI should not silently invent missing Required Inputs",
-    "Assumptions used after explicit user continuation must be labeled Assumption / Needs Confirmation",
-    "System-calculated durations must be marked Estimated",
-    "Constraint conflicts must be surfaced as Constraint conflict / Plan may be infeasible",
-    "User edits must not be silently overwritten",
-    "Regenerate Unconfirmed Content must preserve confirmed or manually edited blocks",
-    "Regenerate Full Plan requires confirmation that lists which edits may be replaced",
-    "Regeneration failure must preserve the user’s current edited plan",
-  ];
-
   return {
     productOverview: {
       productName: input.projectName,
@@ -85,6 +138,7 @@ export function assemblePrd(workspace: ProjectWorkspace): AssembledPrd {
         input.productIdea,
       productGoal: input.businessGoal,
     },
+    constraints: input.constraints,
     targetUser: {
       segment: analysis.targetUser.segment.value,
       ageRange: analysis.targetUser.ageRange.value,
@@ -95,23 +149,19 @@ export function assemblePrd(workspace: ProjectWorkspace): AssembledPrd {
       painPoints: values(analysis.painPoints),
       coreScenarios: values(analysis.coreScenarios),
     },
-    productHypothesis:
-      "Hypothesis: AI can help university students turn learning goals, deadlines, and available study time into a useful structured study plan. This remains a hypothesis to validate in V1 — not a confirmed user research finding.",
+    productHypothesis: buildProductHypothesis(workspace, mvpScope),
+    prioritizationLogic: [...mvpScope.prioritizationLogic],
+    tradeOffs: [...mvpScope.tradeOffs],
     mvpScope: {
       mustHave,
       outOfScope,
     },
     functionalRequirements: p0Requirements,
-    // Assembled from Requirements intent — not independently regenerated
-    aiBehaviorRules: curatedRules,
+    // Assembled from MVP Scope / HITL intent — not independently regenerated
+    aiBehaviorRules: buildAiBehaviorRules(mustHave),
     assumptions: analysis.assumptions,
     openQuestions: analysis.openQuestions,
-    risks: [
-      "AI-generated plans may appear plausible but still be impractical for the user’s real schedule",
-      "Incomplete Required Inputs may reduce plan quality or trigger assumption-heavy drafts",
-      "Users may over-trust AI-generated schedules if estimates and conflicts are not labeled clearly",
-      "Full regeneration may conflict with manually edited or confirmed content if confirmation is skipped",
-    ],
+    risks: buildRisks(mvpScope, mustHave),
     sync: prdSync,
   };
 }

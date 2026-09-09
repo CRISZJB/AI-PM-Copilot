@@ -4,8 +4,8 @@ This document defines the **AI Workflow** and **structured data contract** used 
 
 Product Analysis runs through a live DeepSeek adapter (`src/lib/ai/run-product-analysis.ts`).
 MVP Prioritization runs through a live DeepSeek adapter (`src/lib/ai/run-mvp-prioritization.ts`) **only after** Product Analysis is confirmed, and only when the PM explicitly clicks Generate MVP Scope.
-Requirements still use mock adapters until that stage is wired.
-PRD remains programmatic assembly only (no LLM).
+Requirements run through a live DeepSeek adapter (`src/lib/ai/run-requirements.ts`) **only after** Analysis + MVP are confirmed, and only when the PM explicitly clicks Generate Requirements.
+PRD is **not** an LLM stage: `assemblePrd` → `mergePrd(PrdOverride)` → Workspace / Markdown export.
 
 ---
 
@@ -30,24 +30,32 @@ PM Review / Edit / Reprioritize
     ↓
 Confirm MVP Scope
     ↓
-Confirmed MVP Scope           ← only this may feed future Requirements AI
+Confirmed MVP Scope           ← only this may feed Requirements AI
     ↓
-Requirements Generation       ← still Mock
+Explicit "Generate Requirements"
     ↓
-PRD Assembly                  ← Programmatic only (no LLM)
+DeepSeek Requirements         ← Prompt v2 FROZEN
+    ↓
+PRD v2 (no LLM)
+    assemblePrd(workspace)           ← read-only projection
+         + PrdOverride (PM only)     ← independent storage
+         → mergePrd → PrdDocument
+         → PRD Workspace / prdToMarkdown
 ```
 
 ### Principles
 
 1. **AI only does reasoning stages** — Analysis, MVP Prioritization, Requirements.
-2. **PRD does not call an LLM.** It reads confirmed decisions and assembles a document.
+2. **PRD does not call an LLM.** It projects upstream decisions and merges PM supplement.
 3. **Confirmed data is the source of truth for the next stage.**  
    After the PM edits Analysis or MVP, the next AI stage must consume those confirmed snapshots — not ignore edits and regenerate from the raw idea alone.
 4. **Decision consistency & traceability** — PRD sections label their source stage.
 5. **Human-in-the-loop gates** — Analysis and MVP each use `draft` / `confirmed`; edit after confirm returns to `draft`.
-6. **Product Analysis Prompt v2 is FROZEN FOR CURRENT MVP** — do not create Prompt v3 yet.
-7. **MVP Prioritization must not re-analyze the raw idea** — it consumes Confirmed Product Analysis (including PM Edited values).
-8. **Do not auto-generate MVP on Analysis Confirm** — PM must explicitly Generate.
+6. **Product Analysis Prompt v2 is FROZEN** — do not create Prompt v3 yet.
+7. **MVP Prioritization Prompt v3 is FROZEN** — consumes Confirmed Product Analysis (including PM Edited values).
+8. **Requirements Prompt v2 is FROZEN** — do not auto-run after Confirm MVP.
+9. **Do not auto-generate MVP on Analysis Confirm** — PM must explicitly Generate.
+10. **PrdOverride must not write back** Analysis / MVP / Requirements.
 
 ---
 
@@ -138,7 +146,7 @@ Includes:
 
 ### Stage adapter
 
-- Live (current): `src/lib/ai/run-product-analysis.ts` via DeepSeek (`src/lib/ai/deepseek-client.ts`); prompt: `src/lib/ai/prompts/product-analysis.ts` (**Prompt v2**)
+- Live (current): `src/lib/ai/run-product-analysis.ts` via DeepSeek (`src/lib/ai/deepseek-client.ts`); prompt: `src/lib/ai/prompts/product-analysis.ts` (**Prompt v2 FROZEN**)
 - API: `POST /api/ai/product-analysis`
 - Mock fallback / sample: `src/ai/pipeline/mock/analyzeProduct.ts`
 - Interface: `AnalysisStage.run(input) → ProductAnalysis`
@@ -220,28 +228,60 @@ Each requirement includes:
 
 ### Stage adapter
 
-- Mock: `src/ai/pipeline/mock/generateRequirements.ts`
+- Live (current): `src/lib/ai/run-requirements.ts` via DeepSeek; prompt: `src/lib/ai/prompts/requirements.ts` (**Prompt v2 FROZEN**)
+- API: `POST /api/ai/requirements` — requires confirmed Analysis **and** confirmed MVP
+- Mock sample / fallback: `src/ai/pipeline/mock/generateRequirements.ts`
 - Interface: `RequirementsStage.run(input, confirmedAnalysis, confirmedMvp) → Requirement[]`
+- Runtime validation: Requirements Zod schemas — invalid payloads are rejected
+
+### UI gate
+
+- Confirm MVP does **not** auto-call Requirements
+- PM clicks **Generate Requirements** / **Regenerate**
+- There is **no** Requirements Confirm status machine (by design)
 
 ---
 
-## 4. Why PRD does not call an LLM
+## 4. PRD v2 (no LLM)
 
-PRD is a **projection**, not a generation step.
+PRD is a **projection + PM supplement**, not a generation step.
 
-`assemblePrd(workspace)` in `src/ai/prd/assemblePrd.ts`:
+### Pipeline
 
-- Reads `input`, `analysis`, `mvpScope`, `requirements`
-- Organizes them into a readable PRD document
-- Adds sync metadata only
+```
+assemblePrd(workspace) → AssembledPrd     (read-only; from input/analysis/mvp/requirements)
+PrdOverride                               (PM-only; sessionStorage, not ProjectWorkspace)
+mergePrd(assembled, override) → PrdDocument
+prdToMarkdown(document) → download / copy
+```
 
-It must **not**:
+### AssembledPrd (`src/ai/prd/assemblePrd.ts`)
 
-- invent a new persona
-- re-decide MVP priority
-- invent new acceptance criteria
+- Reads `input`, `analysis`, `mvpScope`, `requirements`, `prdSync`
+- Adds projected fields such as `constraints`, `prioritizationLogic`, `tradeOffs`
+- Builds HITL-oriented `aiBehaviorRules` and display `risks`
+- Must **not** invent personas, re-prioritize MVP, or invent acceptance criteria
 
-If upstream confirmed data changes, the PRD becomes **outdated** until the PM reviews and syncs — it should not silently overwrite itself.
+### PrdOverride (PM layer)
+
+Minimal fields:
+
+- `successMetrics`
+- `validationPlan`
+- `openDecisions`
+- `pmNotes`
+
+Stored in `src/lib/prd-override-store.ts` under key `ai-pm-copilot-prd-override-v1`, isolated by normalized `projectName`.
+
+**Must not** write back Analysis / MVP / Requirements.
+
+### UI
+
+- `PRDSection` = PRD Workspace: read-only assembly + editable PM supplement
+- Save / Download Markdown / Copy Markdown via `mergePrd` → `prdToMarkdown`
+- `markPrdSynced()` updates `prdSync` meta only when PM marks reviewed
+
+If upstream confirmed data changes, `prdSync` becomes **outdated** until the PM reviews — the document must not silently overwrite itself; PM override is retained.
 
 ---
 
@@ -254,16 +294,14 @@ If upstream confirmed data changes, the PRD becomes **outdated** until the PM re
 | Confirm Analysis | `analysisStatus: confirmed` | Enables explicit MVP Generate |
 | Generate MVP | `mvpScope` + `mvpScopeStatus: draft` + `mvpScopeSource: live` | — (await confirm) |
 | Edit / Reprioritize MVP | `mvpScope` (+ flags) + `mvpScopeStatus: draft` | — (must re-confirm) |
-| Confirm MVP | `mvpScopeStatus: confirmed` | Future Requirements via `getConfirmedMvpScope()` |
-| Edit Requirements | `workspace.requirements` | PRD Assembly |
+| Confirm MVP | `mvpScopeStatus: confirmed` | Enables explicit Requirements Generate |
+| Generate Requirements | `workspace.requirements` | PRD assembly |
+| Save PRD Override | independent sessionStorage | merge / export only |
+| Mark PRD synced | `prdSync.syncStatus: up-to-date` | — |
 
 Gate helpers: `src/lib/analysis-gate.ts` (`getConfirmedAnalysis`, `getConfirmedMvpScope`).
 
-Helper for re-running requirements after MVP edits (still mock):
-
-`regenerateRequirementsFromConfirmed(workspace)`
-
-Future Requirements LLM must call `getConfirmedAnalysis` + `getConfirmedMvpScope` first.
+Live Requirements and sample mock regeneration must call confirmed snapshots — never ignore PM edits.
 
 ---
 
@@ -272,14 +310,25 @@ Future Requirements LLM must call `getConfirmedAnalysis` + `getConfirmedMvpScope
 ```
 src/ai/
   types/                 ← AI Contract (TypeScript)
-  pipeline/mock/         ← Mock adapters (swap for LLM later)
-  prd/assemblePrd.ts     ← Deterministic PRD assembly
-  index.ts               ← Public exports
+  schemas/               ← Zod (Analysis / MVP / Requirements)
+  pipeline/mock/         ← Sample / offline adapters
+  prd/
+    assemblePrd.ts       ← Deterministic assembly
+    override-types.ts    ← PrdOverride / PrdDocument
+    mergePrd.ts
+    toMarkdown.ts
+    empty-override.ts
+  index.ts
+
+src/lib/
+  prd-override-store.ts  ← PM Override sessionStorage
+  project-store.ts       ← Workspace + markPrdSynced
+  analysis-gate.ts
 
 docs/ai_architecture.md  ← This file
 ```
 
-Workspace shape: `ProjectWorkspace` (`src/ai/types/workspace.ts`)
+Workspace shape: `ProjectWorkspace` (`src/ai/types/workspace.ts`) — **does not** embed PRD body or Override.
 
 ---
 
@@ -287,11 +336,9 @@ Workspace shape: `ProjectWorkspace` (`src/ai/types/workspace.ts`)
 
 | Stage | Status |
 |-------|--------|
-| Product Analysis | **Live DeepSeek** (Prompt **v2 FROZEN FOR CURRENT MVP** + Zod). Review / Edit / Confirm gate. |
+| Product Analysis | **Live DeepSeek** (Prompt **v2 FROZEN** + Zod). Review / Edit / Confirm gate. |
 | MVP Prioritization | **Live DeepSeek** (Prompt **v3 FROZEN** + Zod). Explicit Generate; Draft / Confirm gate. Mock retained for sample only. |
-| Requirements | **Mock** — `src/ai/pipeline/mock/generateRequirements.ts` |
-| PRD | **Assembly only** — `assemblePrd` (no LLM) |
+| Requirements | **Live DeepSeek** (Prompt **v2 FROZEN** + Zod). Explicit Generate. Mock retained for sample only. |
+| PRD | **assemblePrd + PrdOverride + Markdown export** — **no LLM** |
 
-When wiring Requirements LLM later, keep Analysis + MVP contracts and gates. Do **not** turn PRD into an LLM generator.
-
-**Do not** create Product Analysis Prompt v3. **Do not** unfreeze MVP Prioritization Prompt v3 without an explicit decision. **Do not** auto-run Requirements after Confirm MVP.
+**Do not** create Product Analysis Prompt v3. **Do not** unfreeze MVP Prompt v3 or Requirements Prompt v2 without an explicit decision. **Do not** auto-run Requirements after Confirm MVP. **Do not** turn PRD into an LLM generator.

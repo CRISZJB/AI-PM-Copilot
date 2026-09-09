@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json(
       {
-        error: "Invalid JSON body.",
+        error: "请求体 JSON 无效。",
         code: "invalid_json",
       },
       { status: 400 },
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   if (!parsedInput.success) {
     return NextResponse.json(
       {
-        error: "Invalid ProjectInput.",
+        error: "项目输入无效。",
         code: "invalid_input",
         details: parsedInput.error.flatten(),
       },
@@ -44,8 +44,8 @@ export async function POST(request: Request) {
         {
           error:
             error.code === "missing_api_key"
-              ? "AI service is not configured."
-              : "DEEPSEEK_MODEL is not configured.",
+              ? "AI 服务未配置。"
+              : "未配置 DEEPSEEK_MODEL。",
           code: error.code,
         },
         { status: 503 },
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
       const status = error.code === "parse_failed" ? 422 : 502;
       return NextResponse.json(
         {
-          error: "We couldn't analyze this product idea.",
+          error: "无法分析该产品想法。",
           code: error.code,
         },
         { status },
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     console.error("[api/ai/product-analysis] unexpected error", error);
     return NextResponse.json(
       {
-        error: "We couldn't analyze this product idea.",
+        error: "无法分析该产品想法。",
         code: "unknown",
       },
       { status: 500 },

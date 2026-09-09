@@ -16,3 +16,16 @@ export {
   MvpScopeSchema,
 } from "./mvp-scope";
 export type { MvpScopeParsed } from "./mvp-scope";
+
+export {
+  UserStorySchema,
+  AcceptanceCriterionSchema,
+  RequirementEdgeCaseSchema,
+  MissingInformationHandlingSchema,
+  RequirementSchema,
+  RequirementsOutputSchema,
+} from "./requirements";
+export type {
+  RequirementParsed,
+  RequirementsOutputParsed,
+} from "./requirements";

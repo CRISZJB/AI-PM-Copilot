@@ -2,7 +2,7 @@
 
 > This specification was reconstructed from the current implementation and project decision history after the original product_spec.md was found missing.
 >
-> Sources used: current UI, `docs/project_handoff.md`, `docs/ai_architecture.md`, `docs/prompt_design.md`, `docs/eval_v1.md`, and current code contracts. This is not a new brainstorm.
+> Sources used: current UI, `docs/project_handoff.md`, `docs/ai_architecture.md`, `docs/prompt_design.md`, eval docs, and current code contracts. Updated 2026-09-07 for PRD v2.
 
 ---
 
@@ -10,9 +10,11 @@
 
 帮助产品经理将模糊的产品想法转化为结构化、可审查、可追溯的：
 
-**Product Analysis → MVP Scope → Requirements → PRD**
+**Product Analysis → MVP Scope → Requirements → PRD（可编辑补充 + Markdown 下载）**
 
 本产品不是通用 ChatGPT 对话框，而是结构化的 AI 产品工作流工具。
+
+最终产物：一份供 PM 参考的 **PRD 草稿**——上游决策装配初稿 + PM 补充，可下载 Markdown。
 
 ---
 
@@ -48,7 +50,8 @@
 - **Missing information should not be silently invented.**
 - **Human-in-the-loop.**
 - **MVP validates the smallest core hypothesis.**
-- **PRD is assembled from confirmed upstream decisions.**
+- **PRD is assembled from upstream decisions; PM adds validation/success notes — no PRD LLM.**
+- **PRD Override must not rewrite Analysis / MVP / Requirements.**
 
 Provenance（Product Analysis）当前支持：
 
@@ -68,16 +71,14 @@ Provenance（Product Analysis）当前支持：
 Create Project
     → Product Analysis
     → Review / Edit / Confirm
-    → MVP Scope
-    → Review / Reprioritize
-    → Requirements
-    → Review / Edit
-    → PRD Assembly
+    → Explicit Generate MVP Scope
+    → Review / Reprioritize / Confirm
+    → Explicit Generate Requirements
+    → PRD Workspace
+         assemblePrd → mergePrd(PrdOverride) → 查看 / 补充 / Markdown 下载
 ```
 
-设计意图：每一阶段 AI 提出建议，PM 审查确认后，确认结果成为下一阶段输入。
-
-实现说明：Analysis 的 Edit / Regenerate / Confirm 门闩尚未完全落地；live Analysis 成功后会先用 Mock 填充 MVP 与 Requirements 占位。
+设计意图：每一阶段 AI 提出建议，PM 审查确认后，确认结果成为下一阶段输入。PRD 不做独立 AI 再生成。
 
 ---
 
@@ -85,20 +86,32 @@ Create Project
 
 | Stage | Status |
 |-------|--------|
-| Product Analysis | **Real DeepSeek**（Prompt v2 **FROZEN FOR CURRENT MVP** + Zod） |
+| Product Analysis | **Live DeepSeek**（Prompt **v2 FROZEN** + Zod） |
 | Analysis Review Gate | **Draft → Edit → Confirm**（`analysisStatus`） |
-| MVP Scope | **Real DeepSeek**（Prompt v1 + Zod；需 Confirmed Analysis + 显式 Generate） |
+| MVP Scope | **Live DeepSeek**（Prompt **v3 FROZEN** + Zod；需 Confirmed Analysis + 显式 Generate） |
 | MVP Review Gate | **none → Draft → Edit / Reprioritize → Confirm** |
-| Requirements | **Mock** |
-| PRD | **Assembly**（`assemblePrd`，不调用 LLM） |
+| Requirements | **Live DeepSeek**（Prompt **v2 FROZEN** + Zod；需 Confirmed Analysis + Confirmed MVP + 显式 Generate） |
+| PRD | **v2：assemblePrd → mergePrd → Workspace → Markdown Export**（无 LLM） |
 
 Provider / env（名称 only）：`DEEPSEEK_API_KEY`、`DEEPSEEK_MODEL`、`DEEPSEEK_BASE_URL`。
 
 ---
 
-## Current MVP Scope
+## PRD v2 行为（产品层）
 
-演示案例（AI Study Planner mock prioritization）已确认范围：
+| 能力 | 说明 |
+|------|------|
+| 初稿来源 | `assemblePrd(workspace)` 只读投影 |
+| PM 补充 | `successMetrics` / `validationPlan` / `openDecisions` / `pmNotes` |
+| 存储 | 独立 sessionStorage（`prd-override-store`），**不写入** `ProjectWorkspace` |
+| 导出 | `mergePrd` → `prdToMarkdown`（完整 Requirements，非 UI 截断） |
+| 禁止 | PRD LLM；从 PRD 回写上游 |
+
+---
+
+## Current MVP Scope（Sample Case）
+
+演示案例（AI 学习规划助手）在 Copilot 中作为 Sample Product Case，不是第二产品：
 
 ### P0 / Must Have
 
@@ -118,29 +131,23 @@ Provider / env（名称 only）：`DEEPSEEK_API_KEY`、`DEEPSEEK_MODEL`、`DEEPS
 - Gamification
 - Course Marketplace
 
-P0 收紧原因：V1 只需验证最小闭环 **generate → review → decide**（AI 能否根据目标、截止日期与可用时间生成有用的结构化学习计划）。
+P0 收紧原因：V1 只需验证最小闭环 **generate → review → decide**。
 
 ---
 
 ## AI Evaluation Strategy
 
-对 Product Analysis Prompt 进行人工 Eval。
+已对 Analysis / MVP / Requirements 完成跨领域 Case Eval，当前 Prompt 均 **FROZEN**：
 
-评分维度（1–5）：
+| Layer | Eval | Status |
+|-------|------|--------|
+| Product Analysis Prompt v2 | `docs/regression_eval_v2.md` | FROZEN |
+| MVP Prioritization Prompt v3 | `docs/mvp_eval_v3.md` | FROZEN（3/3） |
+| Requirements Prompt v2 | `docs/requirements_eval_v2.md` | FROZEN（3/3） |
 
-- Relevance
-- Groundedness
-- Structure
-- Actionability
-- Consistency
+Case 集：AI Study Planner / AI Scam Call Assistant / AI Inventory Planner。
 
-已完成：Prompt **v1** 三组跨领域 Case（见 `docs/eval_v1.md`）：
-
-1. AI Study Planner
-2. AI Scam Call Assistant
-3. AI Inventory Planner
-
-下一步（尚未开始）：对 Prompt **v2** 用完全相同的三个 Case 做 Regression Eval。在此完成前，不接入 MVP Scope LLM。
+PRD 无 Prompt Eval（无 LLM）；装配与导出用 `scripts/test-prd-v2.ts` 校验。
 
 ---
 

@@ -13,15 +13,15 @@ export function SiteHeader({ compact = false }: { compact?: boolean }) {
             AI PM Copilot
           </span>
           <span className="hidden text-xs text-ink-faint sm:inline">
-            Product workflow
+            产品工作流
           </span>
         </Link>
         <nav className="flex items-center gap-6 text-sm text-ink-muted">
           <Link href="/create" className="hover:text-ink transition-colors">
-            New Project
+            新建项目
           </Link>
           <Link href="/workspace" className="hover:text-ink transition-colors">
-            Workspace
+            工作区
           </Link>
         </nav>
       </div>

@@ -26,29 +26,29 @@ const buckets: {
 }[] = [
   {
     id: "must_have",
-    title: "Must Have",
-    subtitle: "Minimum recommended to validate the core hypothesis",
+    title: "必须有",
+    subtitle: "验证核心假设的最低推荐范围",
   },
   {
     id: "should_have",
-    title: "Should Have",
-    subtitle: "Suggested after the generate → review loop is proven",
+    title: "应该有",
+    subtitle: "建议在「生成→审阅」闭环验证后再做",
   },
   {
     id: "not_now",
-    title: "Not Now",
-    subtitle: "Intentionally deferred based on current scope",
+    title: "暂不做",
+    subtitle: "基于当前范围有意推迟",
   },
 ];
 
 const loadingMessages = [
-  "Prioritizing features...",
-  "Testing the minimum validation scope...",
-  "Reviewing trade-offs...",
+  "正在对功能排优先级…",
+  "正在检验最小验证范围…",
+  "正在审阅取舍…",
 ];
 
 const REGENERATE_WARNING =
-  "Regeneration may replace unconfirmed AI recommendations. PM-reprioritized / manually edited decisions will be preserved. Continue?";
+  "重新生成可能替换未确认的 AI 建议。PM 重排 / 手改决策会保留。是否继续？";
 
 function FeatureCard({
   feature,
@@ -95,12 +95,12 @@ function FeatureCard({
           <PriorityBadge priority={feature.priority} />
           {feature.reprioritizedByUser ? (
             <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-medium text-ink-faint">
-              PM Reprioritized
+              PM 已重排
             </span>
           ) : null}
           {feature.editedByUser ? (
             <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-medium text-ink-faint">
-              PM Edited
+              PM 已编辑
             </span>
           ) : null}
         </div>
@@ -111,7 +111,7 @@ function FeatureCard({
               onClick={() => setMode("edit")}
               className="text-xs text-ink-faint transition-colors hover:text-ink"
             >
-              Edit
+              编辑
             </button>
             <span className="text-ink-faint/40">·</span>
             <button
@@ -119,7 +119,7 @@ function FeatureCard({
               onClick={() => setMode("reprioritize")}
               className="text-xs text-ink-faint transition-colors hover:text-ink"
             >
-              Reprioritize
+              重排优先级
             </button>
           </div>
         ) : (
@@ -129,7 +129,7 @@ function FeatureCard({
               onClick={mode === "edit" ? saveEdit : saveReprioritize}
               className="text-xs font-medium text-ink transition-colors hover:text-ink-soft"
             >
-              Save
+              保存
             </button>
             <span className="text-ink-faint/40">·</span>
             <button
@@ -137,7 +137,7 @@ function FeatureCard({
               onClick={() => setMode("view")}
               className="text-xs text-ink-faint transition-colors hover:text-ink"
             >
-              Cancel
+              取消
             </button>
           </div>
         )}
@@ -147,7 +147,7 @@ function FeatureCard({
         <div className="mt-3 space-y-3">
           <label className="block space-y-1">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-faint">
-              Name
+              名称
             </span>
             <input
               value={name}
@@ -157,7 +157,7 @@ function FeatureCard({
           </label>
           <label className="block space-y-1">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-faint">
-              Description
+              描述
             </span>
             <textarea
               value={description}
@@ -168,7 +168,7 @@ function FeatureCard({
           </label>
           <label className="block space-y-1">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-ink-faint">
-              Rationale
+              理由
             </span>
             <textarea
               value={rationale}
@@ -181,7 +181,7 @@ function FeatureCard({
       ) : mode === "reprioritize" ? (
         <div className="mt-3 space-y-2">
           <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-faint">
-            Priority
+            优先级
           </p>
           <div className="flex flex-wrap gap-2">
             {(["P0", "P1", "P2"] as Priority[]).map((value) => (
@@ -200,8 +200,7 @@ function FeatureCard({
             ))}
           </div>
           <p className="text-xs text-ink-faint">
-            Category updates automatically: P0 → Must Have, P1 → Should Have,
-            P2 → Not Now.
+            分类自动更新：P0 → 必须有，P1 → 应该有，P2 → 暂不做。
           </p>
         </div>
       ) : (
@@ -212,7 +211,7 @@ function FeatureCard({
 
           <div className="mt-4 rounded-md border border-border bg-surface-muted/40 px-3.5 py-3">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-faint">
-              Why this priority
+              为何此优先级
             </p>
             <p className="mt-1.5 text-sm leading-relaxed text-ink">
               {feature.rationale}
@@ -221,7 +220,7 @@ function FeatureCard({
 
           <div className="mt-3">
             <p className="text-[10px] font-semibold uppercase tracking-wide text-ink-faint">
-              Prioritization Basis
+              优先级依据
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {feature.prioritizationBasis.map((tag) => (
@@ -266,7 +265,7 @@ export function MVPSection({ workspace }: { workspace: ProjectWorkspace }) {
   async function generateMvpScope(options?: { regenerate?: boolean }) {
     if (!analysisConfirmed) {
       setError(
-        "Confirmed Product Analysis is required before MVP prioritization.",
+        "进行 MVP 优先级排序前需已确认产品分析。",
       );
       return;
     }
@@ -299,7 +298,7 @@ export function MVPSection({ workspace }: { workspace: ProjectWorkspace }) {
 
       if (!response.ok || !payload.mvpScope) {
         throw new Error(
-          payload.error || "We couldn't prioritize this MVP scope.",
+          payload.error || "无法完成该 MVP 范围的优先级排序。",
         );
       }
 
@@ -311,14 +310,14 @@ export function MVPSection({ workspace }: { workspace: ProjectWorkspace }) {
       saveLiveMvpScope(nextScope);
       setMessage(
         options?.regenerate
-          ? "MVP scope regenerated. Review priorities and confirm when ready."
-          : "MVP scope generated as Draft. Review before confirming.",
+          ? "MVP 范围已重新生成。请审阅优先级，就绪后确认。"
+          : "MVP 范围已生成为草稿。确认前请先审阅。",
       );
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : "We couldn't prioritize this MVP scope.",
+          : "无法完成该 MVP 范围的优先级排序。",
       );
     } finally {
       setIsGenerating(false);
@@ -332,8 +331,8 @@ export function MVPSection({ workspace }: { workspace: ProjectWorkspace }) {
     saveMvpScopeEdits({ ...mvpScope, features });
     setMessage(
       isConfirmed
-        ? "Changes saved. MVP Scope returned to Draft — confirm again before requirements."
-        : "Changes saved.",
+        ? "已保存。MVP 范围已回到草稿——生成需求前请再次确认。"
+        : "已保存。",
     );
   }
 
@@ -342,7 +341,7 @@ export function MVPSection({ workspace }: { workspace: ProjectWorkspace }) {
       confirmMvpScope();
       setMessage(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not confirm MVP.");
+      setError(err instanceof Error ? err.message : "无法确认 MVP。");
     }
   }
 
@@ -350,54 +349,52 @@ export function MVPSection({ workspace }: { workspace: ProjectWorkspace }) {
     <div className="space-y-8">
       <header>
         <p className="text-xs font-medium uppercase tracking-[0.08em] text-accent">
-          MVP Scope
+          MVP 范围
         </p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
-          Feature prioritization
+          功能优先级
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">
-          Recommend the minimum scope needed to validate the core product
-          hypothesis — using confirmed Product Analysis, not a fresh rewrite of
-          the idea.
+          基于已确认产品分析，推荐验证核心产品假设所需的最小范围——而非重写想法。
         </p>
         <p className="mt-1 text-xs text-ink-faint">
-          AI helps prioritize, but PM makes the final decision.
+          AI 协助排序，最终由 PM 决策。
         </p>
       </header>
 
       <div className="rounded-lg border border-border bg-white px-5 py-4">
         <p className="text-xs font-medium uppercase tracking-[0.08em] text-ink-faint">
-          Analysis gate
+          分析门槛
         </p>
         <p className="mt-1.5 text-sm text-ink">
           {analysisConfirmed
-            ? "Product Analysis is Confirmed. MVP Prioritization uses this confirmed snapshot (including PM edits)."
-            : "Product Analysis is still Draft. Confirm analysis before generating a live MVP Scope."}
+            ? "产品分析已确认。MVP 优先级排序使用该已确认快照（含 PM 编辑）。"
+            : "产品分析仍为草稿。请先确认分析，再生成实时 MVP 范围。"}
         </p>
       </div>
 
       {hasLiveOrMockScope ? (
         <div className="rounded-lg border border-border bg-white px-5 py-4">
           <p className="text-xs font-medium uppercase tracking-[0.08em] text-ink-faint">
-            MVP Scope Status
+            MVP 范围状态
           </p>
           <p className="mt-1.5 text-base font-semibold text-ink">
-            {isConfirmed ? "Confirmed" : "Draft"}
+            {isConfirmed ? "已确认" : "草稿"}
             {mvpScopeSource === "mock" ? (
               <span className="ml-2 text-xs font-normal text-ink-faint">
-                (sample / mock)
+                （示例 / mock）
               </span>
             ) : null}
             {mvpScopeSource === "live" ? (
               <span className="ml-2 text-xs font-normal text-ink-faint">
-                (live DeepSeek)
+                （实时 DeepSeek）
               </span>
             ) : null}
           </p>
           <p className="mt-1 text-sm text-ink-muted">
             {isConfirmed
-              ? "Confirmed scope will be used to generate functional requirements."
-              : "Review AI-recommended priorities before continuing."}
+              ? "已确认范围将用于生成功能需求。"
+              : "继续前请审阅 AI 建议的优先级。"}
           </p>
         </div>
       ) : null}
@@ -413,7 +410,7 @@ export function MVPSection({ workspace }: { workspace: ProjectWorkspace }) {
               onClick={() => generateMvpScope()}
               disabled={isGenerating}
             >
-              Try Again
+              重试
             </Button>
           ) : null}
         </div>
@@ -421,12 +418,9 @@ export function MVPSection({ workspace }: { workspace: ProjectWorkspace }) {
 
       {!hasLiveOrMockScope ? (
         <div className="rounded-lg border border-border bg-white px-6 py-8">
-          <h2 className="text-base font-semibold text-ink">
-            Generate MVP Scope
-          </h2>
+          <h2 className="text-base font-semibold text-ink">生成 MVP 范围</h2>
           <p className="mt-2 max-w-xl text-sm text-ink-muted">
-            Run DeepSeek prioritization on your confirmed Product Analysis.
-            Nothing is generated automatically when you confirm analysis.
+            对已确认产品分析运行 DeepSeek 优先级排序。确认分析时不会自动生成。
           </p>
           {isGenerating ? (
             <p className="mt-6 text-sm text-ink-muted">
@@ -439,12 +433,12 @@ export function MVPSection({ workspace }: { workspace: ProjectWorkspace }) {
               onClick={() => generateMvpScope()}
               disabled={!analysisConfirmed}
             >
-              Generate MVP Scope
+              生成 MVP 范围
             </Button>
           )}
           {!analysisConfirmed ? (
             <p className="mt-3 text-xs text-ink-faint">
-              Confirm Product Analysis first to unlock generation.
+              请先确认产品分析以解锁生成。
             </p>
           ) : null}
         </div>
@@ -453,11 +447,9 @@ export function MVPSection({ workspace }: { workspace: ProjectWorkspace }) {
           {mvpScope.coreHypothesis ? (
             <section className="rounded-lg border border-border bg-white p-6">
               <p className="text-xs font-medium uppercase tracking-[0.08em] text-accent">
-                Validation focus
+                验证焦点
               </p>
-              <h2 className="mt-2 text-sm font-semibold text-ink">
-                Core hypothesis
-              </h2>
+              <h2 className="mt-2 text-sm font-semibold text-ink">核心假设</h2>
               <p className="mt-2 text-sm leading-relaxed text-ink-muted">
                 {mvpScope.coreHypothesis}
               </p>
@@ -467,12 +459,8 @@ export function MVPSection({ workspace }: { workspace: ProjectWorkspace }) {
           <section className="rounded-lg border border-border bg-white p-6">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 className="text-sm font-semibold text-ink">
-                  Prioritization Logic
-                </h2>
-                <p className="mt-2 text-sm text-ink-muted">
-                  Features are prioritized based on:
-                </p>
+                <h2 className="text-sm font-semibold text-ink">优先级逻辑</h2>
+                <p className="mt-2 text-sm text-ink-muted">功能优先级依据：</p>
               </div>
               {mvpScopeSource === "live" || analysisConfirmed ? (
                 <button
@@ -481,7 +469,7 @@ export function MVPSection({ workspace }: { workspace: ProjectWorkspace }) {
                   onClick={() => generateMvpScope({ regenerate: true })}
                   className="text-xs text-ink-faint transition-colors hover:text-ink disabled:opacity-50"
                 >
-                  {isGenerating ? "Regenerating…" : "Regenerate"}
+                  {isGenerating ? "重新生成中…" : "重新生成"}
                 </button>
               ) : null}
             </div>
@@ -519,7 +507,7 @@ export function MVPSection({ workspace }: { workspace: ProjectWorkspace }) {
                   </div>
                   <div className="px-5">
                     {features.length === 0 ? (
-                      <p className="py-5 text-sm text-ink-faint">None</p>
+                      <p className="py-5 text-sm text-ink-faint">无</p>
                     ) : (
                       features.map((feature) => (
                         <FeatureCard
@@ -537,10 +525,10 @@ export function MVPSection({ workspace }: { workspace: ProjectWorkspace }) {
 
           <section className="rounded-lg border border-border bg-white p-6">
             <p className="text-xs font-medium uppercase tracking-[0.08em] text-accent">
-              Scope Control
+              范围控制
             </p>
             <h2 className="mt-2 text-sm font-semibold text-ink">
-              Trade-offs / Scope Notes
+              取舍 / 范围说明
             </h2>
             <ul className="mt-4 space-y-3">
               {mvpScope.tradeOffs.map((note) => (
@@ -559,24 +547,22 @@ export function MVPSection({ workspace }: { workspace: ProjectWorkspace }) {
             {isConfirmed ? (
               <div className="rounded-lg border border-border bg-surface-muted/40 px-5 py-4">
                 <p className="text-base font-semibold text-ink">
-                  MVP scope confirmed
+                  MVP 范围已确认
                 </p>
                 <p className="mt-1 text-sm text-ink-muted">
-                  Confirmed scope will be used to generate functional
-                  requirements.
+                  已确认范围将用于生成功能需求。
                 </p>
                 <p className="mt-3 text-xs text-ink-faint">
-                  Editing or regenerating returns status to Draft.
+                  编辑或重新生成会将状态打回草稿。
                 </p>
               </div>
             ) : (
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="max-w-xl text-sm text-ink-muted">
-                  Confirm when this prioritization is ready for requirements.
-                  Requirements LLM is not wired yet.
+                  当此优先级可用于需求时请确认。确认不会自动生成需求——请打开「需求」并显式生成。
                 </p>
                 <Button type="button" onClick={handleConfirm}>
-                  Confirm MVP Scope
+                  确认 MVP 范围
                 </Button>
               </div>
             )}

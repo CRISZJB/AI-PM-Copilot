@@ -17,7 +17,7 @@ const sourceSerif = Source_Serif_4({
 export const metadata: Metadata = {
   title: "AI PM Copilot",
   description:
-    "Turn product ideas into structured product plans — analysis, MVP scope, requirements, and PRD.",
+    "把产品想法变成结构化产品方案——分析、MVP 范围、需求与 PRD。",
 };
 
 export default function RootLayout({
@@ -27,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="zh-CN"
       className={`${plexSans.variable} ${sourceSerif.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">{children}</body>

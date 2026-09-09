@@ -49,6 +49,7 @@ export function WorkspaceShell() {
   const urlSection = sectionFromSearch(searchParams.get("section"));
   const [userSection, setUserSection] = useState<WorkspaceSection | null>(null);
   const active = userSection ?? urlSection ?? "overview";
+  const isSample = workspace.mvpScopeSource === "mock";
 
   return (
     <div className="flex min-h-[calc(100vh-3.5rem)] bg-surface">
@@ -56,6 +57,7 @@ export function WorkspaceShell() {
         active={active}
         onSelect={setUserSection}
         projectName={workspace.input.projectName}
+        isSample={isSample}
       />
       <main className="flex-1 overflow-y-auto">
         <div className="mx-auto max-w-[1120px] px-8 py-10">
