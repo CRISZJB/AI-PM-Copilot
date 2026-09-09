@@ -8,6 +8,7 @@ import {
 } from "@/lib/ai/run-mvp-prioritization";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 const MvpScopeRequestSchema = z.object({
   input: ProjectInputSchema,

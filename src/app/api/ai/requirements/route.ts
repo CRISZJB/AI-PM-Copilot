@@ -12,6 +12,7 @@ import {
 } from "@/lib/ai/run-requirements";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 const RequirementsRequestSchema = z.object({
   input: ProjectInputSchema,
